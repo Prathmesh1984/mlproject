@@ -7,6 +7,7 @@ from dataclasses import dataclass
 
 from src.exception import CustomException
 from src.logger import logging
+from src.components.data_transformation import DataTransformation
 
 
 @dataclass
@@ -24,46 +25,41 @@ class DataIngestion:
         logging.info("Entered the data ingestion component")
 
         try:
-            # Read dataset
             df = pd.read_csv("notebook/data/stud.csv")
-            logging.info("Dataset read successfully")
+            logging.info("Read the dataset successfully")
 
-            # Create artifacts directory
             os.makedirs(
                 os.path.dirname(self.ingestion_config.train_data_path),
-                exist_ok=True
+                exist_ok=True,
             )
 
-            # Save raw data
             df.to_csv(
                 self.ingestion_config.raw_data_path,
                 index=False,
-                header=True
+                header=True,
             )
 
-            logging.info("Train-test split initiated")
+            logging.info("Train Test Split Initiated")
 
-            # Split dataset
             train_set, test_set = train_test_split(
                 df,
                 test_size=0.2,
-                random_state=42
+                random_state=42,
             )
 
-            # Save train and test datasets
             train_set.to_csv(
                 self.ingestion_config.train_data_path,
                 index=False,
-                header=True
+                header=True,
             )
 
             test_set.to_csv(
                 self.ingestion_config.test_data_path,
                 index=False,
-                header=True
+                header=True,
             )
 
-            logging.info("Data ingestion completed successfully")
+            logging.info("Ingestion of data completed")
 
             return (
                 self.ingestion_config.train_data_path,
@@ -71,13 +67,23 @@ class DataIngestion:
             )
 
         except Exception as e:
-            logging.error(f"Error occurred: {e}")
             raise CustomException(e, sys)
 
 
 if __name__ == "__main__":
     obj = DataIngestion()
+
     train_data, test_data = obj.initiate_data_ingestion()
 
-    print("Train data saved at:", train_data)
-    print("Test data saved at:", test_data)
+    data_transformation = DataTransformation()
+
+    train_arr, test_arr, preprocessor_path = (
+        data_transformation.initiate_data_transformation(
+            train_data,
+            test_data,
+        )
+    )
+
+    print("Train Data:", train_data)
+    print("Test Data:", test_data)
+    print("Preprocessor:", preprocessor_path)
